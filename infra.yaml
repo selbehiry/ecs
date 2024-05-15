@@ -1,0 +1,318 @@
+AWSTemplateFormatVersion: "2010-09-09"
+#Author : "Samir H. Elbehiry"
+
+Parameters:
+  ClusterName:
+    Type: String
+    Default: "vpc-eks-test-cloudformation"
+    Description: cluster name 
+
+  EnvironmentName:
+    Default: dev
+    Description: environment name
+    Type: String
+
+  VpcName:
+    Type: String
+    Default: "VPC-EKS-TEST"
+    Description: vpc name 
+
+  # VpcCidrBlock:
+  #   Type: String
+  #   Default: "80.0.0.0/16"
+  #   Description: vpc cidr block
+  # VpcAZs:
+  #   Type: List<String>
+  #   AllowedValues: ["us-east-1a", "us-east-1b", "us-east-1c"]
+  #   Description: vpc AZs
+  # PrivateSubnets:
+  #   Type: List<String>
+  #   AllowedValues: ["80.0.1.0/24", "80.0.2.0/24", "80.0.3.0/24"]
+  #   Description: vpc private subnets
+  # PublicSubnets:
+  #   Type: List<String>
+  #   AllowedValues: ["80.0.101.0/24", "80.0.102.0/24", "80.0.103.0/24"]
+  #   Description: vpc public subnets
+
+
+  VpcCidrBlock:
+      Type: String
+      Default: "80.0.0.0/16"
+      Description: CIDR block for the VPC
+  PublicSubnet1T:
+      Type: String
+      Default: "80.0.101.0/24"
+      Description: CIDR block for Public Subnet 1
+  PublicSubnet2T:
+      Type: String
+      Default: "80.0.102.0/24"
+      Description: CIDR block for Public Subnet 2
+  PublicSubnet3T:
+      Type: String
+      Default: "80.0.103.0/24"
+      Description: CIDR block for Public Subnet 3
+  PrivateSubnet1T:
+      Type: String
+      Default: "80.0.1.0/24"
+      Description: CIDR block for Private Subnet 1
+  PrivateSubnet2T:
+      Type: String
+      Default: "80.0.2.0/24"
+      Description: CIDR block for Private Subnet 2
+  PrivateSubnet3T:
+      Type: String
+      Default: "80.0.3.0/24"
+      Description: CIDR block for Private Subnet 3
+  VpcAZ1:
+      Type: String
+      Default: "us-east-1a"
+      Description: VpcAZ1
+  VpcAZ2:
+      Type: String
+      Default: "us-east-1b"
+      Description: VpcAZ2
+  VpcAZ3:
+      Type: String
+      Default: "us-east-1c"
+      Description: VpcAZ3
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidrBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet1T
+      AvailabilityZone: !Ref VpcAZ1
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet1
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/elb
+          Value: "1"
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet2T
+      AvailabilityZone: !Ref VpcAZ2
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet2
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/elb
+          Value: "1"
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnet3T
+      AvailabilityZone: !Ref VpcAZ3
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: PublicSubnet3
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/elb
+          Value: "1"
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet1T
+      AvailabilityZone: !Ref VpcAZ1
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet1
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/internal-elb
+          Value: "1"
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet2T
+      AvailabilityZone: !Ref VpcAZ2
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet2
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/internal-elb
+          Value: "1"
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnet3T
+      AvailabilityZone: !Ref VpcAZ3
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet3
+        - Key: kubernetes.io/cluster/${ClusterName}
+          Value: shared
+        - Key: kubernetes.io/role/internal-elb
+          Value: "1"
+
+  EIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+       - Key : Name
+         Value : vpc-test-npr-eks-eip1
+
+  EIP2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+       - Key : Name
+         Value : vpc-test-npr-eks-eip2
+
+  EIP3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+      Tags:
+       - Key : Name
+         Value : vpc-test-npr-eks-eip3
+
+  NatGateway1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !GetAtt PublicSubnet1.SubnetId
+      AllocationId: !GetAtt EIP1.AllocationId #"eipalloc-06c1792dcbcdd1102"
+
+  NatGateway2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !GetAtt PublicSubnet2.SubnetId
+      AllocationId: !GetAtt EIP2.AllocationId #"eipalloc-040df544a57839d4c"
+
+  NatGateway3:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      SubnetId: !GetAtt PublicSubnet3.SubnetId
+      AllocationId: !GetAtt EIP3.AllocationId #"eipalloc-07d0d0d4d94096171"
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable1:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
+
+  PrivateRoute1:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway1
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable1
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NatGateway1 
+
+  PrivateRoute2:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway2
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable2
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NatGateway2 
+
+  PrivateRoute3:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway3
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable3
+      DestinationCidrBlock: "0.0.0.0/0"
+      NatGatewayId: !Ref NatGateway3 
+
+Outputs:
+  VPCID:
+    Value: !Ref VPC
+    Export:
+     Name: !Join [":", [ !Ref EnvironmentName, "VPC" ]]
+  PublicSubnet1ID:
+    Value: !Ref PublicSubnet1
+    Export:
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ1Public" ]]
+  PublicSubnet2ID:
+    Value: !Ref PublicSubnet2
+    Export:
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ2Public" ]]
+  PublicSubnet3ID:
+    Value: !Ref PublicSubnet3
+    Export:
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ3Public" ]]
+  PrivateSubnet1ID:
+    Value: !Ref PrivateSubnet1
+    Export:
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ1Private" ]]
+  PrivateSubnet2ID:
+    Value: !Ref PrivateSubnet2
+    Export: 
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ2Private" ]]
+  PrivateSubnet3ID:
+    Value: !Ref PrivateSubnet3
+    Export: 
+     Name: !Join [":", [ !Ref EnvironmentName, "SubnetAZ3Private" ]]
+  NatGateway1ID:
+    Value: !GetAtt NatGateway1.NatGatewayId
+    Export:
+     Name: "NatGateway1ID"
+  NatGateway2ID:
+    Value: !GetAtt NatGateway2.NatGatewayId
+    Export:
+     Name: "NatGateway2ID"
+  NatGateway3ID:
+    Value: !GetAtt NatGateway3.NatGatewayId
+    Export:
+     Name: "NatGateway3ID"
+
