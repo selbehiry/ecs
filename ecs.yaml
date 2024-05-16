@@ -54,7 +54,7 @@ Resources:
       LaunchType: FARGATE
       LoadBalancers:
         - ContainerName: AWSTest
-          ContainerPort: 8080
+          ContainerPort: 80
           TargetGroupArn: !Ref WebTargetGroup
 
       NetworkConfiguration:
@@ -74,8 +74,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       VpcId:
-        Fn::ImportValue:
-          !Join [ ":", [ !Ref EnvironmentName, "VPC" ]]
+        Fn::ImportValue: !Sub "${EnvironmentName}:VPC"
       GroupDescription: Container security group for ecs containers
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
@@ -127,12 +126,12 @@ Resources:
         -
           Name: AWSTest
           # The docker image path along with tag
-          Image: 162258779877.dkr.ecr.us-east-1.amazonaws.com/selbehiry-nginx-1:latest
+          Image: 316194371467.dkr.ecr.us-east-1.amazonaws.com/npr/nginx:latest
           #162258779877.dkr.ecr.us-east-1.amazonaws.com/selbehiry-nginx:latest
           #162258779877.dkr.ecr.us-east-1.amazonaws.com/npr/cmss-nginx:nginx-7daa923
           #162258779877.dkr.ecr.us-east-1.amazonaws.com/npr/httpd:2.4 # <image_link>
           PortMappings:
-            - ContainerPort: 8080
+            - ContainerPort: 80
           LogConfiguration:
             LogDriver: awslogs
             Options:
